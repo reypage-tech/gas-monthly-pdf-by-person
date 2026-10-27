@@ -1,5 +1,17 @@
 # gas-monthly-pdf-by-person
 
+## In English
+
+A Google Apps Script sample that builds one monthly PDF per person from a work report sheet. All data is fictional (a facility inspection company).
+It splits last month's rows by person, creates a PDF for each (sorted by date, with person, period and row count), and saves it in that person's Drive folder.
+A log sheet prevents making the same person and month twice. Planned emails are listed in a sheet, and nothing is sent or shared.
+Rows with an unknown person or an unreadable date stop the run and go to an error log sheet.
+How to try it:
+1. Create a new spreadsheet and open Apps Script from Extensions.
+2. Paste each `.gs` file in `src/`, replace `appsscript.json`, and add the Drive API (v3) service.
+3. Run `resetDemo` once to load sample data, then create the PDFs from the menu.
+4. Local tests with mocked Google services: `node test/run.js`. Not yet run in a real Apps Script project.
+
 日報のシートから、担当者ごとの月次PDFを一括で作る Google Apps Script の見本です。
 架空の設備点検会社のデータで動きます。登場する会社・人物・現場はすべて架空です。
 
