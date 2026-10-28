@@ -3,7 +3,7 @@ var fs = require('fs'), path = require('path'), vm = require('vm');
 var mock = require('./mock_apis.js');
 var B = path.join(__dirname, '..', 'src');
 var FILES = ['Common.gs', 'Config.gs', 'SeedData.gs', 'Notify.gs', 'Pdf.gs', 'Code.gs'];
-var T0 = Date.UTC(2026, 10, 2, 0, 0, 0); // 2026-11-02 09:00 JST
+var T0 = Date.UTC(2026, 9, 1, 0, 0, 0); // 2026-10-01 09:00 JST
 var res = [];
 function ok(name, cond, detail) { res.push(!!cond); console.log((cond ? '[OK] ' : '[NG] ') + name + (cond || !detail ? '' : ' - ' + detail)); }
 function env(nowMs) {
@@ -23,33 +23,33 @@ function table(e, f) { return (docOf(e, f).html.match(/<tr>.*?<\/tr>/g) || []).m
 
 (function () {
   var e = env();
-  ok('R01 期間の指定は先月（2026-10）', e.ctx.lastMonth_() === '2026-10');
+  ok('R01 期間の指定は先月（2026-09）', e.ctx.lastMonth_() === '2026-09');
   var r = e.ctx.makeLastMonth();
   ok('R02 結果：作成3・エラー2（日報が無い大野はPDFなし）', r.ok && r.made === 3 && r.errors === 2 && r.skipped === 0, JSON.stringify(r));
   ok('R03 PDFは3つ', pdfs(e).length === 3);
-  ok('R04 ファイル名は 日報_期間_担当者.pdf', pdfs(e).map(function (f) { return f.meta.name; }).sort().join() === ['日報_2026-10_川上（架空）.pdf', '日報_2026-10_林（架空）.pdf', '日報_2026-10_森（架空）.pdf'].sort().join());
+  ok('R04 ファイル名は 日報_期間_担当者.pdf', pdfs(e).map(function (f) { return f.meta.name; }).sort().join() === ['日報_2026-09_川上（架空）.pdf', '日報_2026-09_林（架空）.pdf', '日報_2026-09_森（架空）.pdf'].sort().join());
   var fs_ = folders(e), root = fs_.filter(function (f) { return !f.meta.parents; });
   ok('R05 親フォルダ1つ＋担当者フォルダ3つ', root.length === 1 && fs_.length === 4 && root[0].meta.name === '日報PDF（架空デモ）');
   var byName = {}; fs_.forEach(function (f) { byName[f.meta.name] = f.id; });
   ok('R06 担当者フォルダは親フォルダの中', fs_.filter(function (f) { return f.meta.parents; }).every(function (f) { return f.meta.parents[0] === root[0].id; }));
-  ok('R07 各PDFは本人のフォルダに保存', pdfs(e).every(function (f) { return !!f.meta.parents && f.meta.parents[0] === byName[f.meta.name.replace(/^日報_2026-10_|\.pdf$/g, '')]; }));
+  ok('R07 各PDFは本人のフォルダに保存', pdfs(e).every(function (f) { return !!f.meta.parents && f.meta.parents[0] === byName[f.meta.name.replace(/^日報_2026-09_|\.pdf$/g, '')]; }));
   var mori = pdfs(e).filter(function (f) { return /森/.test(f.meta.name); })[0];
   var t = table(e, mori);
-  ok('R08 森の表：見出し＋10月の5件（9月分は入らない）', t.length === 6 && t.slice(1).every(function (x) { return x[0].slice(0, 7) === '2026-10' && x[1] === '森（架空）'; }), JSON.stringify(t));
-  ok('R09 日付順に並ぶ', t.slice(1).map(function (x) { return x[0]; }).join() === '2026-10-01,2026-10-06,2026-10-14,2026-10-22,2026-10-30');
-  ok('R10 他の人の行は入らない', pdfs(e).every(function (f) { var n = f.meta.name.replace(/^日報_2026-10_|\.pdf$/g, ''); return table(e, f).slice(1).every(function (x) { return x[1] === n; }); }));
+  ok('R08 森の表：見出し＋9月の5件（8月分は入らない）', t.length === 6 && t.slice(1).every(function (x) { return x[0].slice(0, 7) === '2026-09' && x[1] === '森（架空）'; }), JSON.stringify(t));
+  ok('R09 日付順に並ぶ', t.slice(1).map(function (x) { return x[0]; }).join() === '2026-09-01,2026-09-06,2026-09-14,2026-09-22,2026-09-30');
+  ok('R10 他の人の行は入らない', pdfs(e).every(function (f) { var n = f.meta.name.replace(/^日報_2026-09_|\.pdf$/g, ''); return table(e, f).slice(1).every(function (x) { return x[1] === n; }); }));
   var d = docOf(e, mori);
-  ok('R11 見出しの下に担当者・期間・件数', d.html.indexOf('<p>件数：5件</p>') > 0 && d.html.indexOf('<p>担当者：森（架空）</p>') > 0 && d.html.indexOf('<p>期間：2026-10</p>') > 0);
+  ok('R11 見出しの下に担当者・期間・件数', d.html.indexOf('<p>件数：5件</p>') > 0 && d.html.indexOf('<p>担当者：森（架空）</p>') > 0 && d.html.indexOf('<p>期間：2026-09</p>') > 0);
   ok('R12 作業用ドキュメントは削除、PDFは残る', pdfs(e).every(function (f) { return docOf(e, f).removed === true && !f.removed; }));
   var sd = rows(e, '送信予定');
-  ok('R22 送信予定は3行・宛先は担当者・状態は未送信（記録のみ）', sd.length === 3 && sd.every(function (x) { return x[1] === '2026-10' && /（架空）$/.test(x[2]) && x[3] === '2026-10 の月次日報（PDF）' && x[6] === '未送信（記録のみ）'; }), JSON.stringify(sd));
+  ok('R22 送信予定は3行・宛先は担当者・状態は未送信（記録のみ）', sd.length === 3 && sd.every(function (x) { return x[1] === '2026-09' && /（架空）$/.test(x[2]) && x[3] === '2026-09 の月次日報（PDF）' && x[6] === '未送信（記録のみ）'; }), JSON.stringify(sd));
   ok('R23 送信予定のファイルIDは作ったPDFと一致', sd.every(function (x) { return pdfs(e).some(function (f) { return f.meta.name === x[4] && e.w.files[x[5]] === f; }); }));
   var st = rows(e, '担当者');
   ok('R13 担当者シートにフォルダIDを記録（大野は空のまま）', st.filter(function (x) { return x[1]; }).length === 3 && st.filter(function (x) { return x[0] === '大野（架空）'; })[0][1] === '');
-  ok('R14 作成記録は3行', rows(e, '作成記録').length === 3 && rows(e, '作成記録').every(function (x) { return x[0] === '2026-10'; }));
+  ok('R14 作成記録は3行', rows(e, '作成記録').length === 3 && rows(e, '作成記録').every(function (x) { return x[0] === '2026-09'; }));
   var log = rows(e, 'エラー通知ログ');
   ok('R15 担当者一覧にいない人はエラー通知ログへ', log.some(function (x) { return /担当者一覧にいません：佐藤（架空）/.test(x[3]); }));
-  ok('R16 日付が読めない行はエラー通知ログへ', log.some(function (x) { return /日付が読めません：2026-10-3x/.test(x[3]); }));
+  ok('R16 日付が読めない行はエラー通知ログへ', log.some(function (x) { return /日付が読めません：2026-09-3x/.test(x[3]); }));
   ok('R17 通知の宛先は管理者（架空）・記録だけ', log.length === 2 && log.every(function (x) { return x[2] === '管理者（架空）'; }));
 
   var r2 = e.ctx.makeLastMonth();
@@ -57,32 +57,32 @@ function table(e, f) { return (docOf(e, f).html.match(/<tr>.*?<\/tr>/g) || []).m
   ok('R19 2回目でフォルダが増えない', folders(e).length === 4);
   ok('R24 2回目で送信予定が増えない', rows(e, '送信予定').length === 3);
   ok('R20 2回目でエラー通知が増えない', rows(e, 'エラー通知ログ').length === 2 && r2.errors === 0);
-  var r3 = e.ctx.makeReports('2026-09');
-  ok('R21 別の期間（9月）は森の1件だけ・同じフォルダに入る', r3.made === 1 && r3.files[0].rows === 1 && r3.files[0].folderId === byName['森（架空）'] && folders(e).length === 4, JSON.stringify(r3));
+  var r3 = e.ctx.makeReports('2026-08');
+  ok('R21 別の期間（8月）は森の1件だけ・同じフォルダに入る', r3.made === 1 && r3.files[0].rows === 1 && r3.files[0].folderId === byName['森（架空）'] && folders(e).length === 4, JSON.stringify(r3));
 })();
 
 (function () {
   var e = env(); e.ctx.APP_CONFIG.maxPerRun = 2;
-  var r = e.ctx.makeReports('2026-10');
+  var r = e.ctx.makeReports('2026-09');
   ok('B01 1回の上限2：2つ作って残り1は次回', r.made === 2 && r.pending === 1, JSON.stringify(r));
-  var r2 = e.ctx.makeReports('2026-10');
+  var r2 = e.ctx.makeReports('2026-09');
   ok('B02 次の実行で続きの1つだけ作る', r2.made === 1 && r2.skipped === 2 && r2.pending === 0 && pdfs(e).length === 3, JSON.stringify(r2));
 })();
 
 (function () {
   var e = env(); e.w.props[e.ctx.pdfDailyKey_()] = String(e.ctx.APP_CONFIG.pdf.dailyLimit);
-  var r = e.ctx.makeReports('2026-10');
+  var r = e.ctx.makeReports('2026-09');
   ok('B03 1日の上限に達したら止めて記録', r.ok === false && r.code === 'ERROR' && rows(e, 'エラー通知ログ').some(function (x) { return /上限/.test(x[3]); }) && pdfs(e).length === 0);
-  var threw = false; try { e.ctx.makeReports('2026/10'); } catch (err) { threw = true; }
+  var threw = false; try { e.ctx.makeReports('2026/09'); } catch (err) { threw = true; }
   ok('B04 期間の形が違えば止まる', threw);
   e.w.lockBusy = true;
-  ok('B05 実行中なら BUSY', e.ctx.makeReports('2026-10').code === 'BUSY');
+  ok('B05 実行中なら BUSY', e.ctx.makeReports('2026-09').code === 'BUSY');
 })();
 
 (function () {
   var e = env();
-  e.w.sheets['日報'].appendRow(['2026-10-31', '林（架空）', "'=IMPORTRANGE(\"x\")", '点検', '完了', '']);
-  e.ctx.makeReports('2026-10');
+  e.w.sheets['日報'].appendRow(['2026-09-30', '林（架空）', "'=IMPORTRANGE(\"x\")", '点検', '完了', '']);
+  e.ctx.makeReports('2026-09');
   var hayashi = pdfs(e).filter(function (f) { return /林/.test(f.meta.name); })[0];
   ok('B06 = で始まる値は文字のまま表へ（数式にならない）', table(e, hayashi).some(function (x) { return x[2] === '=IMPORTRANGE("x")'; }));
   ok('B07 ファイル名に使えない文字は _ に', e.ctx.safeFileName_('a/b:c') === 'a_b_c');
@@ -92,21 +92,21 @@ function table(e, f) { return (docOf(e, f).html.match(/<tr>.*?<\/tr>/g) || []).m
 
 (function () {
   var e = env(); e.w.exportFail = true;
-  var r = e.ctx.makeReports('2026-10');
+  var r = e.ctx.makeReports('2026-09');
   var docs = Object.keys(e.w.docs).map(function (k) { return e.w.docs[k]; });
   ok('B09 PDFにできないとき：止めて記録・作業用ドキュメントは削除・送信予定は入らない', r.ok === false && pdfs(e).length === 0 && docs.length === 1 && docs[0].removed === true && rows(e, '送信予定').length === 0 && rows(e, 'エラー通知ログ').some(function (x) { return /export/.test(x[3]); }), JSON.stringify(r));
   e.w.exportFail = false;
-  var r2 = e.ctx.makeReports('2026-10');
+  var r2 = e.ctx.makeReports('2026-09');
   ok('B10 直った次の実行で3つ作り、送信予定も3行', r2.made === 3 && rows(e, '送信予定').length === 3, JSON.stringify(r2));
 })();
 
 (function () {
   var e = env(); e.w.exportBytes = 200;
-  var r = e.ctx.makeReports('2026-10');
+  var r = e.ctx.makeReports('2026-09');
   var docs = Object.keys(e.w.docs).map(function (k) { return e.w.docs[k]; });
   ok('B09b 中身が無いようなごく小さいPDF：保存せず止めて記録・作業用は削除・送信予定なし', r.ok === false && pdfs(e).length === 0 && docs.length === 1 && docs[0].removed === true && rows(e, '送信予定').length === 0 && rows(e, 'エラー通知ログ').some(function (x) { return /小さすぎ/.test(x[3]); }), JSON.stringify(r));
   e.w.exportBytes = null;
-  ok('B10b 直った次の実行で3つ作れる', e.ctx.makeReports('2026-10').made === 3);
+  ok('B10b 直った次の実行で3つ作れる', e.ctx.makeReports('2026-09').made === 3);
 })();
 
 (function () {
@@ -131,8 +131,8 @@ function table(e, f) { return (docOf(e, f).html.match(/<tr>.*?<\/tr>/g) || []).m
   ok('K01 書式なしで手で作ったシートでも、作成日時は0埋めの文字（yyyy-MM-dd HH:mm:ss）で入る', v.length >= 1 && v.every(function (x) { return typeof x === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(x); }), JSON.stringify(v));
 })();
 (function () {
-  var e = env(Date.UTC(2026, 11, 10, 0, 0, 0)); var r = e.ctx.makeDemoMonth();
-  ok('K03 makeDemoMonth は今日の日付に関係なく 2026-10 の日報PDFを3つ作る', rows(e, '作成記録').length === 3 && rows(e, '作成記録').every(function (x) { return x[0] === '2026-10'; }), JSON.stringify(r));
+  var e = env(Date.UTC(2026, 7, 10, 0, 0, 0)); var r = e.ctx.makeDemoMonth();
+  ok('K03 makeDemoMonth は今日の日付に関係なく 2026-09 の日報PDFを3つ作る', rows(e, '作成記録').length === 3 && rows(e, '作成記録').every(function (x) { return x[0] === '2026-09'; }), JSON.stringify(r));
 })();
 
 (function () {

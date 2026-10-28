@@ -4,12 +4,12 @@
  * 使う部品：Common（共通）・Pdf（PDF作成）・Notify（エラーは通知文を記録するだけ）
  */
 function onOpen() {
-  SpreadsheetApp.getUi().createMenu('日報PDF').addItem('先月分を作る（送信は記録だけ）', 'makeLastMonth').addItem('デモの月（2026-10）を作る', 'makeDemoMonth').addItem('デモを最初に戻す', 'resetDemo').addToUi();
+  SpreadsheetApp.getUi().createMenu('日報PDF').addItem('先月分を作る（送信は記録だけ）', 'makeLastMonth').addItem('デモの月（2026-09）を作る', 'makeDemoMonth').addItem('デモを最初に戻す', 'resetDemo').addToUi();
 }
 
 function makeLastMonth() { return makeReports(lastMonth_()); }
 
-/** デモの月（架空データの 2026-10）を作る。今日の日付に関係なく試せる */
+/** デモの月（架空データの 2026-09）を作る。今日の日付に関係なく試せる */
 function makeDemoMonth() { return makeReports(APP_CONFIG.demoMonth); }
 
 function lastMonth_() {
@@ -18,7 +18,7 @@ function lastMonth_() {
   return y + '-' + ('0' + m).slice(-2);
 }
 
-/** ym：'2026-10' の形。戻り値 { ok, made, skipped, pending, errors, files:[...] } */
+/** ym：'2026-09' の形。戻り値 { ok, made, skipped, pending, errors, files:[...] } */
 function makeReports(ym) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(ym))) throw new Error('期間は yyyy-MM で指定してください: ' + ym);
   var lock = LockService.getScriptLock();

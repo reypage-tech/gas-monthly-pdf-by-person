@@ -2,7 +2,7 @@
 var APP_CONFIG = {
   tz: 'Asia/Tokyo',
   propPrefix: 'rep_',
-  demoMonth: '2026-10', // 架空データの月（makeDemoMonth で作る）
+  demoMonth: '2026-09', // 架空データの月（makeDemoMonth で作る）
   sheets: { reports: '日報', staff: '担当者', made: '作成記録', noticeLog: 'エラー通知ログ', send: '送信予定' },
   reportHeader: ['日付', '担当者', '現場', '作業内容', '状況', '備考'],
   staffHeader: ['担当者', 'フォルダID'],
