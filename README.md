@@ -1,18 +1,13 @@
-# gas-monthly-pdf-by-person
+# 日報シートから担当者ごとの月次PDFを作る（GAS見本）
 
-## In English
+設備点検などの会社で、月初めに先月の日報を担当者ごとに分けてPDFにしている事務の方向けです。
 
-A Google Apps Script sample that builds one monthly PDF per person from a work report sheet. All data is fictional (a facility inspection company).
-It splits last month's rows by person, creates a PDF for each (sorted by date, with person, period and row count), and saves it in that person's Drive folder.
-A log sheet prevents making the same person and month twice. Planned emails are listed in a sheet, and nothing is sent or shared.
-Rows with an unknown person or an unreadable date stop the run and go to an error log sheet.
-How to try it:
-1. Create a new spreadsheet and open Apps Script from Extensions.
-2. Paste each `.gs` file in `src/`, replace `appsscript.json`, and add the Drive API (v3) service.
-3. Run `resetDemo` once to load sample data, then create the PDFs from the menu.
-4. Local tests with mocked Google services: `node test/run.js`. Not yet run in a real Apps Script project.
+![担当者のPDFにする前の中身とエラー通知ログ（模擬テストの出力、架空データ）](docs/local_test_output.png)
 
-日報のシートから、担当者ごとの月次PDFを一括で作る Google Apps Script の見本です。
+架空の10月分の日報から3人分のPDFを作り、担当者一覧にない人と読めない日付の2行をエラー通知ログに残した結果です。画像は1人目の中身です。上の画像は、ローカルの模擬テスト（`node test/demo_output.js`、Google のサービスはモック）の実際の出力から作りました。実際の Google アカウントでは動かしていません。
+
+**効果：** 担当者ごとに手で分けてPDFにしていた作業が、メニューを1回押すだけで全員分そろいます。
+
 架空の設備点検会社のデータで動きます。登場する会社・人物・現場はすべて架空です。
 
 ## 課題
@@ -33,11 +28,12 @@ How to try it:
 | 送る準備 | 宛先とファイルを1件ずつ確認 | 送信予定の一覧で確認 |
 | 作り直し | 同じものが重なりやすい | 同じ月の分は二度作らない |
 
-ローカルの模擬テスト（`node test/run.js`、GoogleのサービスはモックAPI）で50件すべて通ることを確かめています。
+ローカルの模擬テスト（`node test/run.js`、Google のサービスはモック）で50件すべて通ることを確かめています。
 
 ## 画面
-![作る前](docs/jp2_before.webp)
-![作った後](docs/jp2_after.webp)
+説明用に作った図です（実際の Google の画面ではありません）。
+![作る前（説明用の図）](docs/jp2_before.webp)
+![作った後（説明用の図）](docs/jp2_after.webp)
 
 ## 設置の手順
 1. 新しいスプレッドシートを作り、「拡張機能」から Apps Script を開く
@@ -58,7 +54,7 @@ How to try it:
 | src/Code.gs | PDF作成の流れ・送信予定の記録・デモの初期化 |
 | src/Pdf.gs | PDFへの変換と保存・1日の上限 |
 | src/Notify.gs・Common.gs | 通知文・共通の処理 |
-| test/ | Node.js で動くテスト |
+| test/ | Node.js で動くテスト（demo_output.js は冒頭の画像の元になる出力） |
 
 ## 作りの工夫
 - テスト：`node test/run.js`（Google のサービスを偽物に置き換えて Node.js で動かします。実際の Apps Script では動かしていません）
@@ -72,6 +68,18 @@ How to try it:
 
 ## 作った人
 Reypage｜GAS業務自動化
+
+## In English
+
+A Google Apps Script sample that builds one monthly PDF per person from a work report sheet. All data is fictional (a facility inspection company).
+It splits last month's rows by person, creates a PDF for each (sorted by date, with person, period and row count), and saves it in that person's Drive folder.
+A log sheet prevents making the same person and month twice. Planned emails are listed in a sheet, and nothing is sent or shared.
+Rows with an unknown person or an unreadable date stop the run and go to an error log sheet.
+How to try it:
+1. Create a new spreadsheet and open Apps Script from Extensions.
+2. Paste each `.gs` file in `src/`, replace `appsscript.json`, and add the Drive API (v3) service.
+3. Run `resetDemo` once to load sample data, then create the PDFs from the menu.
+4. Local tests with mocked Google services: `node test/run.js`. The image at the top is built from `node test/demo_output.js` on the same mocks. Not yet run in a real Apps Script project.
 
 ## ライセンス
 MIT（LICENSE を参照）
